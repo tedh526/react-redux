@@ -1,54 +1,41 @@
-import React from 'react';
+import { connect } from 'react-redux';
 import FilterInput from '../components/FilterInput';
 import Artists from '../components/Artists';
+import React, {Component} from 'react';
 
-import store from '../store';
+const mapStateToProps = (state, ownProps) => {
+  return {
+    artists: state.artists.list
+  };
 
-class FilterableArtistsContainer extends React.Component {
+};
 
-  constructor() {
+export default connect(mapStateToProps)(
+  class extends Component {
+    constructor(props) {
+      super(props);
+      this.state = {
+        inputValue: '',
+        artists: this.props.artists
+      }
+      this.handleChange = this.handleChange.bind(this);
+    }
+    handleChange(evt) {
+      this.setState({
+        inputValue: evt.target.value
+      });
+    }
+    render(){ 
+      const filteredArtists = this.state.artists.filter(artist => artist.name.match(this.state.inputValue));
+      return (
+        <div>
+          <FilterInput 
+            inputValue={this.state.inputValue}
+            handleChange={this.handleChange}
+          />
+          <Artists artists= {filteredArtists} />
+        </div>
+      );
+    }
+  });
 
-    super();
-
-    this.state = Object.assign({
-      inputValue: ''
-    }, store.getState().artists);
-
-    this.handleChange = this.handleChange.bind(this);
-
-  }
-
-  componentDidMount() {
-    this.unsubscribe = store.subscribe(() => {
-      this.setState(store.getState().artists);
-    });
-  }
-
-  componentWillUnmount() {
-    this.unsubscribe();
-  }
-
-  handleChange(evt) {
-    this.setState({
-      inputValue: evt.target.value
-    });
-  }
-
-  render() {
-
-    const inputValue = this.state.inputValue;
-    const filteredArtists = this.state.list.filter(artist => artist.name.match(inputValue));
-
-    return (
-      <div>
-        <FilterInput
-          handleChange={this.handleChange}
-          inputValue={inputValue}
-        />
-        <Artists artists={filteredArtists}/>
-      </div>
-    );
-  }
-}
-
-export default FilterableArtistsContainer;
